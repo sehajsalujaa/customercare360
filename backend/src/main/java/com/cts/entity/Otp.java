@@ -1,31 +1,30 @@
 package com.cts.entity;
 
-import com.cts.enums.UserStatus;
+import com.cts.enums.OtpPurpose;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Customer {
+@Builder
+public class Otp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long customerId;
+    private Long id;
 
-    @OneToOne
-    @JoinColumn(name="userId")
-    private User user;
-
-    private String customerType;
-    private String contactInfo;
+    private String identifier;
+    private String otpCode;
+    private LocalDateTime expiryTime;
+    private boolean verified = false;
 
     @Enumerated(EnumType.STRING)
-    private UserStatus status;
-
+    private OtpPurpose purpose;
 }

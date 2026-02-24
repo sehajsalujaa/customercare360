@@ -9,7 +9,8 @@ import java.util.List;
 
 @Repository
 public interface BillingCycleRepository extends JpaRepository <BillingCycle, Long> {
-    List<Bill> findByServiceAccountAccountId(Long accountId);
-    List<Bill> findByBillingCycleCycleId(Long cycleId);
-    List<Bill> findByStatus(String status);
+    List<BillingCycle> findByCycleId(Long cycleId);
+    List<BillingCycle> findByServiceType(String serviceType);
+    List<BillingCycle> findByStatus(String status);
+
 }

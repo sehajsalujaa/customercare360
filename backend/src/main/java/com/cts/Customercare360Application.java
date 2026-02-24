@@ -7,8 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Customercare360Application {
 
 	public static void main(String[] args) {
-
         SpringApplication.run(Customercare360Application.class, args);
 	}
-
 }

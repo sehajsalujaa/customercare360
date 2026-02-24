@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface NotificationService {
     Notification sendNotification(NotificationDto dto);
-    List<Notification> getNotificationsByUser(Long userId);
+    List<Notification> getNotificationsByUser(Long userID);
 }
