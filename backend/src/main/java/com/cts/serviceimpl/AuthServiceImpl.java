@@ -2,9 +2,9 @@ package com.cts.serviceimpl;
 
 import com.cts.dto.*;
 import com.cts.entity.*;
-import com.cts.enums.OtpPurpose;
-import com.cts.enums.UserRole;
-import com.cts.enums.UserStatus;
+import com.cts.enums.*;
+import com.cts.enums.CustomerStatus;
+import com.cts.exception.CustomException;
 import com.cts.repository.*;
 import com.cts.service.AuthService;
 import com.cts.service.JwtService;
@@ -33,10 +33,10 @@ public class AuthServiceImpl implements AuthService {
     public void registerCustomer(RegisterRequestDto request) {
         // 1. Duplicate check
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new CustomException("Email already exists");
         }
         if (userRepository.findByPhone(request.getPhone()).isPresent()) {
-            throw new RuntimeException("Phone already exists");
+            throw new CustomException("Phone already exists");
         }
         // 2. Password policy
         validatePassword(request.getPassword());
@@ -56,7 +56,19 @@ public class AuthServiceImpl implements AuthService {
                 .roles(Set.of(customerRole))
                 .build();
         userRepository.save(user);
-        // 5. Generate OTP
+        // 5. Save customer with PENDING status
+        Customer customer = Customer.builder()
+                .user(user)
+                .name(user.getUsername())
+                .address("Self Registered")
+                .countryCode("IN")
+                .regionCode("TN")
+                .customerType(CustomerType.RESIDENTIAL)
+                .customerStatus(CustomerStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
+        customerRepository.save(customer);
+        // 6. Generate OTP
         String otpCode = generateOtp();
         Otp otp = Otp.builder()
                 .identifier(request.getEmail())
@@ -76,13 +88,13 @@ public class AuthServiceImpl implements AuthService {
                 .findTopByIdentifierOrderByExpiryTimeDesc(request.getEmailOrPhone())
                 .orElseThrow(() -> new RuntimeException("OTP not found"));
         if (otp.isVerified()) {
-            throw new RuntimeException("OTP already used");
+            throw new CustomException("OTP already used");
         }
         if (otp.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("OTP expired");
+            throw new CustomException("OTP expired");
         }
         if (!otp.getOtpCode().equals(request.getOtp())) {
-            throw new RuntimeException("Invalid OTP");
+            throw new CustomException("Invalid OTP");
         }
         // Activate user
         User user = userRepository.findByEmail(request.getEmailOrPhone())
@@ -91,22 +103,13 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         otp.setVerified(true);
         otpRepository.save(otp);
-
-        // Create Customer entry after successful activation
-        Customer customer = Customer.builder()
-                .user(user)
-                .customerType("REGULAR")
-                .contactInfo(user.getEmail())
-                .status(UserStatus.ACTIVE)
-                .build();
-        customerRepository.save(customer);
     }
     private void validatePassword(String password) {
         if (password.length() < 8 ||
                 !password.matches(".*[A-Z].*") ||
                 !password.matches(".*[a-z].*") ||
                 !password.matches(".*\\d.*")) {
-            throw new RuntimeException("Password must contain upper, lower, digit and be 8+ chars");
+            throw new CustomException("Password must contain upper, lower, digit and be 8+ chars");
         }
     }
     private String generateOtp() {
@@ -119,12 +122,21 @@ public class AuthServiceImpl implements AuthService {
                 .or(() -> userRepository.findByPhone(request.getPhone()))
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (!user.isEnabled()) {
-            throw new RuntimeException("Account not activated");
+            throw new CustomException("Account not activated");
+        }
+        boolean isCustomer = user.getRoles().stream()
+                .anyMatch(role -> role.getName().equals("ROLE_CUSTOMER"));
+        if (isCustomer){
+            Customer customer = customerRepository.findByUser(user)
+                    .orElseThrow(() -> new RuntimeException("Customer profile not found"));
+            if (customer.getCustomerStatus() != CustomerStatus.ACTIVE){
+                throw new CustomException("Account pending admin approval");
+            }
         }
         if (!user.isAccountNonLocked()) {
             if (user.getLockTime() != null &&
                     user.getLockTime().plusMinutes(15).isAfter(LocalDateTime.now())) {
-                throw new RuntimeException("Account locked. Try after 15 minutes");
+                throw new CustomException("Account locked. Try after 15 minutes");
             } else {
                 user.setAccountNonLocked(true);
                 user.setFailedAttempts(0);
@@ -156,10 +168,10 @@ public class AuthServiceImpl implements AuthService {
                 );
             }
             userRepository.save(user);
-            throw new RuntimeException("Invalid credentials");
+            throw new CustomException("Invalid credentials");
         }
         if (user.isFirstLogin()) {
-            throw new RuntimeException("Password reset required before login");
+            throw new CustomException("Password reset required before login");
         }
         // Reset failed attempts
         user.setFailedAttempts(0);
@@ -189,7 +201,7 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token expired or revoked");
+            throw new CustomException("Refresh token expired or revoked");
         }
 
         User user = token.getUser();
@@ -249,13 +261,13 @@ public class AuthServiceImpl implements AuthService {
                 .findTopByIdentifierOrderByExpiryTimeDesc(request.getEmailOrPhone())
                 .orElseThrow(() -> new RuntimeException("OTP not found"));
         if (!otp.getPurpose().equals(OtpPurpose.PASSWORD_RESET)) {
-            throw new RuntimeException("Invalid OTP purpose");
+            throw new CustomException("Invalid OTP purpose");
         }
         if (otp.getExpiryTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("OTP expired");
+            throw new CustomException("OTP expired");
         }
         if (!otp.getOtpCode().equals(request.getOtpCode())) {
-            throw new RuntimeException("Invalid OTP");
+            throw new CustomException("Invalid OTP");
         }
         User user = userRepository.findByEmail(request.getEmailOrPhone())
                 .or(() -> userRepository.findByPhone(request.getEmailOrPhone()))

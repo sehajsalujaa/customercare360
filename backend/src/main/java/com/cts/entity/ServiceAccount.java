@@ -1,7 +1,10 @@
 package com.cts.entity;
 
+import com.cts.enums.ServiceAccountStatus;
+import com.cts.enums.ServiceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +13,7 @@ import java.util.List;
 
 @Entity
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServiceAccount {
@@ -22,9 +26,16 @@ public class ServiceAccount {
     @JoinColumn(name = "customerId")
     private Customer customer;
 
-    private String serviceType;
+    @Enumerated(EnumType.STRING)
+    private ServiceType serviceType;
+
     private LocalDate startDate;
-    private LocalDate endDate;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private ServiceAccountStatus serviceAccountStatus;
+
+    @ManyToOne
+    @JoinColumn(name="premiseId")
+    private Premise premise;
 
 }

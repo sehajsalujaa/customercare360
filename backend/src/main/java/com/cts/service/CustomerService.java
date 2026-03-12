@@ -2,17 +2,16 @@
 
 package com.cts.service;
 
-import com.cts.dto.CustomerDto;
-import com.cts.entity.Customer;
-
-import java.util.List;
+import com.cts.dto.*;
 
 public interface CustomerService {
 
-    Customer createCustomer(CustomerDto dto);
-    Customer getCustomerById(Long id);
-    List<Customer> getAllCustomers();
-    Customer updateCustomer(Long id, CustomerDto dto);
-
-    void deleteCustomer(Long id);
+   void approveCustomer(Long customerId);
+   void updateCustomerContact(Long customerId, UpdateCustomerContactDto dto);
+   void createServiceAccount(CreateServiceAccountDto dto);
+   void linkPremise(LinkPremiseDto dto);
+   CustomerProfileResponseDto getCustomerProfile(Long customerId);
+   void deactivateCustomer(Long customerId, String reason);
+   void reactivateCustomer(Long customerId);
+   void createServiceRequest(CreateServiceRequestDto dto);
 }

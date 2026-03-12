@@ -1,17 +1,22 @@
 package com.cts.entity;
 
+import com.cts.enums.Priority;
+import com.cts.enums.RequestStatus;
+import com.cts.enums.RequestType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.cglib.core.Local;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ServiceRequest {
 
     @Id
@@ -22,9 +27,15 @@ public class ServiceRequest {
     @JoinColumn(name="customerId")
     private Customer customer;
 
-    private String requestType;
-    private LocalDate createdDate;
-    private String priority;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private RequestType requestType;
+
+    private LocalDateTime createdDate;
+
+    @Enumerated(EnumType.STRING)
+    private Priority priority;
+
+    @Enumerated(EnumType.STRING)
+    private RequestStatus status;
 
 }

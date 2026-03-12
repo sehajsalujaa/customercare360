@@ -6,6 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PremiseRepository extends JpaRepository<Premise, Long> {
-    Premise findByAddress(String address);
-    Premise findByMeterId(String meterId);
 }

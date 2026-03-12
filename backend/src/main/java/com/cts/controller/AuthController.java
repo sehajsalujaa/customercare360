@@ -15,21 +15,25 @@ import java.util.Map;
 public class AuthController {
     private final AuthService authService;
     @PostMapping("/register")
-    public String register(@Valid @RequestBody RegisterRequestDto request) {
+    public ResponseEntity<String> register(
+            @Valid @RequestBody RegisterRequestDto request) {
         authService.registerCustomer(request);
-        return "OTP sent successfully";
+        return ResponseEntity.ok("OTP sent successfully");
     }
     @PostMapping("/verify-otp")
-    public String verifyOtp(@RequestBody OtpVerificationRequestDto request) {
+    public ResponseEntity<String> verifyOtp(
+            @Valid @RequestBody OtpVerificationRequestDto request) {
         authService.verifyOtp(request);
-        return "Account activated successfully";
+        return ResponseEntity.ok("Account activated successfully");
     }
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request){
+    public ResponseEntity<LoginResponseDto> login(
+            @Valid @RequestBody LoginRequestDto request){
         return ResponseEntity.ok(authService.login(request));
     }
     @PostMapping("/refresh")
-    public ResponseEntity<LoginResponseDto> refresh(@RequestBody Map<String, String> request) {
+    public ResponseEntity<LoginResponseDto> refresh(
+            @RequestBody Map<String, String> request) {
         return ResponseEntity.ok(authService.refreshToken(request.get("refreshToken")));
     }
     @PostMapping("/logout-all")
@@ -39,13 +43,14 @@ public class AuthController {
         return ResponseEntity.ok("Logged out from all devices");
     }
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequestDto request) {
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDto request) {
         authService.initiatePasswordReset(request.getEmailOrPhone());
         return ResponseEntity.ok("Password reset OTP sent");
     }
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(
-            @RequestBody ResetPasswordRequestDto request) {
+            @Valid @RequestBody ResetPasswordRequestDto request) {
         authService.resetPassword(request);
         return ResponseEntity.ok("Password updated successfully");
     }

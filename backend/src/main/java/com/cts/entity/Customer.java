@@ -1,17 +1,16 @@
 package com.cts.entity;
 
-import com.cts.enums.UserStatus;
+import com.cts.enums.CustomerStatus;
+import com.cts.enums.CustomerType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
-@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Customer {
 
     @Id
@@ -19,13 +18,40 @@ public class Customer {
     private Long customerId;
 
     @OneToOne
-    @JoinColumn(name="userId")
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    private String customerType;
-    private String contactInfo;
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
+    private String countryCode;
+
+    @Column(nullable = false)
+    private String regionCode;
 
     @Enumerated(EnumType.STRING)
-    private UserStatus status;
+    @Column(nullable = false)
+    private CustomerStatus customerStatus;
 
+    private String deactivationReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CustomerType customerType;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
