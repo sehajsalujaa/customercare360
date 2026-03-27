@@ -8,7 +8,4 @@ import java.util.List;
 
 @Repository
 public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
-    List<Complaint> findByCustomerCustomerId(Long customerId);
-    List<Complaint> findByStatus(String status);
-    List<Complaint> findByCategory(String category);
 }

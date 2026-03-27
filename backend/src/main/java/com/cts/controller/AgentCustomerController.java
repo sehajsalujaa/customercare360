@@ -2,6 +2,7 @@ package com.cts.controller;
 
 import com.cts.dto.*;
 import com.cts.service.CustomerService;
+import com.cts.service.RequestService;
 import com.cts.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/agent")
+@RequestMapping("/api/v1/agent")
 @RequiredArgsConstructor
 public class AgentCustomerController {
     private final UserService userService;
     private final CustomerService customerService;
+    private final RequestService requestService;
 
     @PostMapping("/create-customer")
     public ResponseEntity<String> createCustomerProfile(
@@ -51,5 +53,19 @@ public class AgentCustomerController {
     public ResponseEntity<CustomerProfileResponseDto> getCustomerProfile(
             @PathVariable Long customerId) {
         return ResponseEntity.ok(customerService.getCustomerProfile(customerId));
+    }
+
+    @PostMapping("/service-agreement")
+    public ResponseEntity<String> recordAgreement(
+            @RequestBody RecordServiceAgreementDto dto){
+        customerService.recordServiceAgreement(dto);
+        return ResponseEntity.ok("Service agreement recorded successfully");
+    }
+
+    @PutMapping("/request/priority")
+    public ResponseEntity<String> updateRequestPriority(
+            @RequestBody UpdateRequestPriorityDto dto){
+        requestService.updateRequestPriority(dto);
+        return ResponseEntity.ok("Request priority updated");
     }
 }

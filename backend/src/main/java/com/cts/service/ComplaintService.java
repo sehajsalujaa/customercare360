@@ -3,11 +3,13 @@
 package com.cts.service;
 
 import com.cts.dto.ComplaintDto;
+import com.cts.dto.CreateComplaintDto;
+import com.cts.dto.ResolveComplaintDto;
 import com.cts.entity.Complaint;
 
 import java.util.List;
 
 public interface ComplaintService {
-    Complaint logComplaint(ComplaintDto dto);
-    List<Complaint> getComplaintsByCustomer(Long customerId);
+    void createComplaint(CreateComplaintDto dto);
+    void resolveComplaint(ResolveComplaintDto dto);
 }

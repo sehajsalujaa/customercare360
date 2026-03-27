@@ -1,7 +1,9 @@
 package com.cts.entity;
 
+import com.cts.enums.BillStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +14,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Bill {
 
     @Id
@@ -30,6 +33,10 @@ public class Bill {
     private Double usage;
     private Double amount;
     private LocalDate dueDate;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private BillStatus billStatus;
+
+    private String errorMessage;
 
 }

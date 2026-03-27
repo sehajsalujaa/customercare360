@@ -38,4 +38,8 @@ public class ServiceRequest {
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
+    private String supervisorNote;
+
+    private LocalDateTime lastUpdated;
+
 }

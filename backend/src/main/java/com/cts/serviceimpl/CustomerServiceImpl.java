@@ -2,10 +2,7 @@ package com.cts.serviceimpl;
 
 import com.cts.dto.*;
 import com.cts.entity.*;
-import com.cts.enums.CustomerStatus;
-import com.cts.enums.Priority;
-import com.cts.enums.RequestStatus;
-import com.cts.enums.ServiceAccountStatus;
+import com.cts.enums.*;
 import com.cts.exception.CustomException;
 import com.cts.repository.*;
 import com.cts.service.CustomerService;
@@ -25,11 +22,12 @@ public class CustomerServiceImpl implements CustomerService {
     private final ServiceAccountRepository serviceAccountRepository;
     private final PremiseRepository premiseRepository;
     private final ServiceRequestRepository serviceRequestRepository;
+    private final ServiceAgreementRepository serviceAgreementRepository;
 
     @Override
     public void approveCustomer(Long customerId) {
         Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new CustomException("Customer not found"));
         if (customer.getCustomerStatus() != CustomerStatus.PENDING) {
             throw new CustomException("Customer not in pending state");
         }
@@ -172,6 +170,26 @@ public class CustomerServiceImpl implements CustomerService {
                 .status(RequestStatus.OPEN) // default
                 .build();
         serviceRequestRepository.save(request);
+    }
+
+    @Override
+
+    public void recordServiceAgreement(RecordServiceAgreementDto dto) {
+        ServiceAccount account = serviceAccountRepository
+                .findById(dto.getServiceAccountId())
+                .orElseThrow(() -> new CustomException("Service account not found"));
+        if(account.getCustomer().getCustomerType() == CustomerType.INDUSTRIAL
+            && dto.getTariffCode() == null){
+            throw new CustomException("Tarrif code mandatory for industrial customers");
+        }
+        ServiceAgreement agreement = ServiceAgreement.builder()
+                .serviceAccount(account)
+                .termStartDate(dto.getTermStartDate())
+                .termEndDate(dto.getTermEndDate())
+                .tariffCode(dto.getTariffCode())
+                .specialNotes(dto.getSpecialNotes())
+                .build();
+        serviceAgreementRepository.save(agreement);
     }
 
 }

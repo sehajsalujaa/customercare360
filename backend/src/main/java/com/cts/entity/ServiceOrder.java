@@ -1,7 +1,10 @@
 package com.cts.entity;
 
+import com.cts.enums.OrderType;
+import com.cts.enums.ServiceOrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +14,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ServiceOrder {
 
     @Id
@@ -18,15 +22,27 @@ public class ServiceOrder {
     private Long orderId;
 
     @ManyToOne
-    @JoinColumn(name = "accountId")
+    @JoinColumn(name = "serviceAccountId")
     private ServiceAccount serviceAccount;
 
     @ManyToOne
     @JoinColumn(name = "premiseId")
     private Premise premise;
 
-    private String orderType;
+    @Enumerated(EnumType.STRING)
+    private OrderType orderType;
+
     private LocalDate scheduledDate;
     private LocalDate completionDate;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    private ServiceOrderStatus serviceOrderStatus;
+
+    private String technicianName;
+    private String reassignmentLog;
+    private String failureReason;
+
+    @ManyToOne
+    @JoinColumn(name="request_id")
+    private ServiceRequest serviceRequest;
 }

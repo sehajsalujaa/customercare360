@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         validatePassword(request.getPassword());
         // 3. Fetch CUSTOMER role from DB
         Role customerRole = roleRepository.findByName("ROLE_CUSTOMER")
-                .orElseThrow(() -> new RuntimeException("Default role not found"));
+                .orElseThrow(() -> new CustomException("Default role not found"));
         // 4. Create user (disabled initially)
         User user = User.builder()
                 .username(request.getUsername())
@@ -86,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
     public void verifyOtp(OtpVerificationRequestDto request) {
         Otp otp = otpRepository
                 .findTopByIdentifierOrderByExpiryTimeDesc(request.getEmailOrPhone())
-                .orElseThrow(() -> new RuntimeException("OTP not found"));
+                .orElseThrow(() -> new CustomException("OTP not found"));
         if (otp.isVerified()) {
             throw new CustomException("OTP already used");
         }
@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
         }
         // Activate user
         User user = userRepository.findByEmail(request.getEmailOrPhone())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found"));
         user.setEnabled(true);
         userRepository.save(user);
         otp.setVerified(true);
@@ -120,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponseDto login(LoginRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .or(() -> userRepository.findByPhone(request.getPhone()))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found"));
         if (!user.isEnabled()) {
             throw new CustomException("Account not activated");
         }
@@ -128,7 +128,7 @@ public class AuthServiceImpl implements AuthService {
                 .anyMatch(role -> role.getName().equals("ROLE_CUSTOMER"));
         if (isCustomer){
             Customer customer = customerRepository.findByUser(user)
-                    .orElseThrow(() -> new RuntimeException("Customer profile not found"));
+                    .orElseThrow(() -> new CustomException("Customer profile not found"));
             if (customer.getCustomerStatus() != CustomerStatus.ACTIVE){
                 throw new CustomException("Account pending admin approval");
             }
@@ -199,7 +199,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponseDto refreshToken(String refreshToken) {
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new CustomException("Invalid refresh token"));
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new CustomException("Refresh token expired or revoked");
         }
@@ -231,7 +231,7 @@ public class AuthServiceImpl implements AuthService {
     public void logoutAll(String emailOrPhone) {
         User user = userRepository.findByEmail(emailOrPhone)
                 .or(() -> userRepository.findByPhone(emailOrPhone))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found"));
         List<RefreshToken> tokens =
                 refreshTokenRepository.findByUserAndRevokedFalse(user);
         tokens.forEach(token -> token.setRevoked(true));
@@ -242,7 +242,7 @@ public class AuthServiceImpl implements AuthService {
     public void initiatePasswordReset(String emailOrPhone) {
         User user = userRepository.findByEmail(emailOrPhone)
                 .or(() -> userRepository.findByPhone(emailOrPhone))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found"));
         String otpValue = String.valueOf((int)(Math.random() * 900000) + 100000);
         Otp otp = Otp.builder()
                 .identifier(emailOrPhone)
@@ -259,7 +259,7 @@ public class AuthServiceImpl implements AuthService {
     public void resetPassword(ResetPasswordRequestDto request) {
         Otp otp = otpRepository
                 .findTopByIdentifierOrderByExpiryTimeDesc(request.getEmailOrPhone())
-                .orElseThrow(() -> new RuntimeException("OTP not found"));
+                .orElseThrow(() -> new CustomException("OTP not found"));
         if (!otp.getPurpose().equals(OtpPurpose.PASSWORD_RESET)) {
             throw new CustomException("Invalid OTP purpose");
         }
@@ -271,7 +271,7 @@ public class AuthServiceImpl implements AuthService {
         }
         User user = userRepository.findByEmail(request.getEmailOrPhone())
                 .or(() -> userRepository.findByPhone(request.getEmailOrPhone()))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new CustomException("User not found"));
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 
         // Optional: reset failed attempts

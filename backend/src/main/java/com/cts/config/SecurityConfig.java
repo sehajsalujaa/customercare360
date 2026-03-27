@@ -29,9 +29,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/reports/**").hasRole("ADMIN")
+                        .requestMatchers("/api/kpi/**").hasRole("ADMIN")
                         .requestMatchers("/api/agent/**").hasAnyRole("ADMIN","AGENT")
-                        .requestMatchers("/api/customer/**").hasAuthority("CUSTOMER_READ")
+                        .requestMatchers("/api/complaints/**").hasRole("AGENT")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/field/**").hasRole("FIELD_COORDINATOR")
+                        .requestMatchers("/api/billing/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/billing/**").hasRole("BILLING_ANALYST")
+                        .requestMatchers("/api/notifications/**").hasAnyRole("CUSTOMER", "AGENT", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

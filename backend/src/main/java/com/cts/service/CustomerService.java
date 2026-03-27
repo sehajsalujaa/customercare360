@@ -14,4 +14,5 @@ public interface CustomerService {
    void deactivateCustomer(Long customerId, String reason);
    void reactivateCustomer(Long customerId);
    void createServiceRequest(CreateServiceRequestDto dto);
+   void recordServiceAgreement(RecordServiceAgreementDto dto);
 }

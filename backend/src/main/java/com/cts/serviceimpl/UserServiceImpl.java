@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException("Email already exists");
         }
         Role agentRole = roleRepository.findByName("ROLE_AGENT")
-                .orElseThrow(() -> new RuntimeException("Agent role not found"));
+                .orElseThrow(() -> new CustomException("Agent role not found"));
         User agent = new User();
         agent.setUsername(request.getUsername());
         agent.setEmail(request.getEmail());

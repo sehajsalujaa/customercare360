@@ -2,12 +2,13 @@
 
 package com.cts.service;
 
+import com.cts.dto.CreateBillingCycleDto;
 import com.cts.entity.BillingCycle;
 
 import java.util.List;
 
 public interface BillingCycleService {
-    BillingCycle createCycle(BillingCycle cycle);
-    BillingCycle getCycleById(Long cycleId);
-    List<BillingCycle> getAllCycles();
+    void createBillingCycle(CreateBillingCycleDto dto);
+    String generateBills(Long cycleId);
+    void closeBillingCycle(Long cycleId);
 }
