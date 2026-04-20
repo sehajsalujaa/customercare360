@@ -1,11 +1,16 @@
 package com.cts.exception;
 import com.cts.dto.ErrorResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.LocalDateTime;
+import java.util.Map;
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     // 🔴 Custom Business Exception → 400
@@ -36,9 +41,23 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    // 🔴 Missing route/static resource → 404
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNotFound(NoResourceFoundException ex) {
+        ErrorResponseDto error = ErrorResponseDto.builder()
+                .code("NOT_FOUND")
+                .message("Endpoint not found")
+                .correlationId(MDC.get("correlationId"))
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
     // 🔴 Generic Exception → 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGeneric(Exception ex) {
+        log.error("Unhandled exception. correlationId={}", MDC.get("correlationId"), ex);
         ErrorResponseDto error = ErrorResponseDto.builder()
                 .code("INTERNAL_ERROR")
                 .message("Something went wrong")

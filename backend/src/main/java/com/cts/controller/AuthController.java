@@ -14,23 +14,27 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+
     @PostMapping("/register")
     public ResponseEntity<String> register(
             @Valid @RequestBody RegisterRequestDto request) {
         authService.registerCustomer(request);
         return ResponseEntity.ok("OTP sent successfully");
     }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<String> verifyOtp(
             @Valid @RequestBody OtpVerificationRequestDto request) {
         authService.verifyOtp(request);
         return ResponseEntity.ok("Account activated successfully");
     }
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
             @Valid @RequestBody LoginRequestDto request){
         return ResponseEntity.ok(authService.login(request));
     }
+
     @PostMapping("/refresh")
     public ResponseEntity<LoginResponseDto> refresh(
             @RequestBody Map<String, String> request) {
@@ -42,12 +46,14 @@ public class AuthController {
         authService.logoutAll(emailOrPhone);
         return ResponseEntity.ok("Logged out from all devices");
     }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequestDto request) {
         authService.initiatePasswordReset(request.getEmailOrPhone());
         return ResponseEntity.ok("Password reset OTP sent");
     }
+
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(
             @Valid @RequestBody ResetPasswordRequestDto request) {

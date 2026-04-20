@@ -21,6 +21,8 @@ public class Premise {
 
     private String address;
     private String region;
+
+    @Column(unique = true)
     private String meterId;
 
 }

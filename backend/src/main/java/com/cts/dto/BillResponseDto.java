@@ -17,4 +17,9 @@ public class BillResponseDto {
     private double amount;
     private LocalDate dueDate;
     private String billStatus;
+    private String customerName;
+    private String email;
+    private String connectionType;
+    private LocalDate fromDate;
+    private LocalDate toDate;
 }

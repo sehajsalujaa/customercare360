@@ -4,10 +4,16 @@ import com.cts.dto.RequestStatusResponseDto;
 import com.cts.dto.UpdateRequestPriorityDto;
 import com.cts.entity.ServiceOrder;
 import com.cts.entity.ServiceRequest;
+import com.cts.entity.User;
+import com.cts.enums.NotificationType;
 import com.cts.enums.Priority;
 import com.cts.exception.CustomException;
 import com.cts.repository.ServiceOrderRepository;
 import com.cts.repository.ServiceRequestRepository;
+import com.cts.repository.UserRepository;
+import com.cts.security.SecurityUtil;
+import com.cts.service.AuditService;
+import com.cts.service.NotificationService;
 import com.cts.service.RequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +25,10 @@ import java.time.LocalDateTime;
 public class RequestServiceImpl implements RequestService {
     private final ServiceRequestRepository serviceRequestRepository;
     private final ServiceOrderRepository serviceOrderRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final AuditService auditService;
+    private final SecurityUtil securityUtil;
 
     @Override
     public void updateRequestPriority(UpdateRequestPriorityDto dto) {
@@ -32,6 +42,22 @@ public class RequestServiceImpl implements RequestService {
         request.setSupervisorNote(dto.getSupervisorNote());
         request.setLastUpdated(LocalDateTime.now());
         serviceRequestRepository.save(request);
+
+        Long customerUserId = request.getCustomer() != null && request.getCustomer().getUser() != null
+            ? request.getCustomer().getUser().getUserID()
+            : null;
+        safeNotifyUser(
+            customerUserId,
+            "Priority updated for request #" + request.getRequestId() + " to " + request.getPriority() + ".",
+            NotificationType.SERVICE
+        );
+        notifyRoleUsers(
+            "ROLE_FIELD_COORDINATOR",
+            "Request #" + request.getRequestId() + " priority updated to " + request.getPriority() + ".",
+            NotificationType.SERVICE
+        );
+
+        auditService.logAction(securityUtil.getCurrentUserId(), "UPDATE", "ServiceRequest");
     }
 
     @Override
@@ -50,4 +76,21 @@ public class RequestServiceImpl implements RequestService {
                 .build();
     }
 
+    private void safeNotifyUser(Long userId, String message, NotificationType type) {
+        try {
+            if (userId != null) {
+                notificationService.createNotification(userId, message, type);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void notifyRoleUsers(String roleName, String message, NotificationType type) {
+        try {
+            for (User u : userRepository.findByRolesName(roleName)) {
+                safeNotifyUser(u.getUserID(), message, type);
+            }
+        } catch (Exception ignored) {
+        }
+    }
 }

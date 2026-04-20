@@ -2,6 +2,7 @@
 
 package com.cts.service;
 
+import com.cts.dto.BillingCycleResponseDto;
 import com.cts.dto.CreateBillingCycleDto;
 import com.cts.entity.BillingCycle;
 
@@ -11,4 +12,6 @@ public interface BillingCycleService {
     void createBillingCycle(CreateBillingCycleDto dto);
     String generateBills(Long cycleId);
     void closeBillingCycle(Long cycleId);
+
+    List<BillingCycleResponseDto> getAllCycles();
 }

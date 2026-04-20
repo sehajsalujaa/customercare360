@@ -72,6 +72,35 @@ public class DataInitializer {
                         )
                 );
 
+        roleRepository.findByName("ROLE_BILLING_ANALYST")
+                .orElseGet(() ->
+                        roleRepository.save(
+                                Role.builder()
+                                        .name("ROLE_BILLING_ANALYST")
+                                        .permissions(Set.of(agentRead))
+                                        .build()
+                        )
+                );
+
+        roleRepository.findByName("ROLE_FIELD_COORDINATOR")
+                .orElseGet(() ->
+                        roleRepository.save(
+                                Role.builder()
+                                        .name("ROLE_FIELD_COORDINATOR")
+                                        .permissions(Set.of(agentRead))
+                                        .build()
+                        )
+                );
+
+        roleRepository.findByName("ROLE_BILLING_ANALYST").ifPresent(analystRole ->
+                userRepository.findByEmail("analyst1@gmail.com").ifPresent(user -> {
+                    if (user.getRoles().stream().noneMatch(r -> "ROLE_BILLING_ANALYST".equals(r.getName()))) {
+                        user.getRoles().add(analystRole);
+                        userRepository.save(user);
+                    }
+                })
+        );
+
         if (userRepository.findByEmail("admin@gmail.com").isEmpty()) {
             User admin = new User();
             admin.setUsername("admin");

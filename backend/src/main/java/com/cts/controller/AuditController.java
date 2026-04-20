@@ -1,6 +1,8 @@
 package com.cts.controller;
 
+import com.cts.entity.AuditLog;
 import com.cts.entity.AuthAudit;
+import com.cts.repository.AuditLogRepository;
 import com.cts.repository.AuthAuditRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuditController {
     private final AuthAuditRepository authAuditRepository;
+    private final AuditLogRepository auditLogRepository;
 
     @GetMapping
     public List<AuthAudit> getAllLogs() {
@@ -46,7 +49,7 @@ public class AuditController {
         return authAuditRepository.findAll();
     }
 
-    @GetMapping("/export")
+    @GetMapping("/export/auth-audit")
     public void exportCsv(HttpServletResponse response) throws IOException {
         List<AuthAudit> logs = authAuditRepository.findAll();
         response.setContentType("text/csv");
@@ -63,5 +66,19 @@ public class AuditController {
         }
         writer.flush();
         writer.close();
+    }
+
+    @GetMapping("/export/audit-log")
+    public String exportAuditLogs() {
+        List<AuditLog> logs = auditLogRepository.findAll();
+        StringBuilder csv = new StringBuilder();
+        csv.append("UserId,Action,Entity,Timestamp\n");
+        for (AuditLog log : logs) {
+            csv.append(log.getUserId()).append(",")
+                    .append(log.getAction()).append(",")
+                    .append(log.getEntity()).append(",")
+                    .append(log.getTimestamp()).append("\n");
+        }
+        return csv.toString();
     }
 }

@@ -8,6 +8,8 @@ import com.cts.exception.CustomException;
 import com.cts.repository.*;
 import com.cts.service.AuthService;
 import com.cts.service.JwtService;
+import com.cts.service.NotificationService;
+import com.cts.utils.CustomerBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final RoleRepository roleRepository;
     private final AuthAuditRepository authAuditRepository;
+    private final NotificationService notificationService;
 
     @Override
     public void registerCustomer(RegisterRequestDto request) {
@@ -57,17 +60,34 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         userRepository.save(user);
         // 5. Save customer with PENDING status
-        Customer customer = Customer.builder()
-                .user(user)
-                .name(user.getUsername())
-                .address("Self Registered")
-                .countryCode("IN")
-                .regionCode("TN")
-                .customerType(CustomerType.RESIDENTIAL)
-                .customerStatus(CustomerStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
+        Customer customer = CustomerBuilder.buildCustomer(
+                        user,
+                        request.getName(),
+                        request.getAddress(),
+                        request.getRegionCode(),
+                        request.getCustomerType()
+                );
         customerRepository.save(customer);
+
+        try {
+            notificationService.createNotification(
+                    user.getUserID(),
+                    "Registration submitted successfully. Your account is pending admin approval.",
+                    NotificationType.SERVICE
+            );
+        } catch (Exception ignored) {
+        }
+
+        try {
+            String type = request.getCustomerType() != null ? request.getCustomerType().name() : "UNKNOWN";
+            List<User> admins = userRepository.findByRolesName("ROLE_ADMIN");
+            for (User admin : admins) {
+                String adminMessage = "Approval pending: New registration \"" + request.getName() + "\" (" + type + ") requires review.";
+                notificationService.createNotification(admin.getUserID(), adminMessage, NotificationType.SERVICE);
+            }
+        } catch (Exception ignored) {
+        }
+
         // 6. Generate OTP
         String otpCode = generateOtp();
         Otp otp = Otp.builder()
@@ -103,6 +123,15 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         otp.setVerified(true);
         otpRepository.save(otp);
+
+        try {
+            notificationService.createNotification(
+                    user.getUserID(),
+                    "OTP verified successfully. You can login after admin approval.",
+                    NotificationType.SERVICE
+            );
+        } catch (Exception ignored) {
+        }
     }
     private void validatePassword(String password) {
         if (password.length() < 8 ||

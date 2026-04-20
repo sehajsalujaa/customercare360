@@ -2,9 +2,7 @@
 
 package com.cts.service;
 
-import com.cts.dto.NotificationDto;
 import com.cts.dto.NotificationResponseDto;
-import com.cts.entity.Notification;
 import com.cts.enums.NotificationType;
 
 import java.util.List;

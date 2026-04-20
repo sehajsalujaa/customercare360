@@ -11,6 +11,8 @@ import com.cts.repository.UserRepository;
 import com.cts.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,11 +20,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
+
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
     @Override
     public void createNotification(Long userId, String message, NotificationType type) {
+        log.info("Creating notification for userID={} with message={}", userId, message);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException("User not found"));
         Notification notification = Notification.builder()
@@ -37,6 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public List<NotificationResponseDto> getUserNotifications(Long userID, String sort) {
+        log.info("Fetching notifications for userID={}", userID);
         List<Notification> notifications;
         if ("ASC".equalsIgnoreCase(sort)) {
             notifications = notificationRepository.findByUserUserIDOrderByCreatedAtAsc(userID);
@@ -55,12 +62,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public long getUnreadCount(Long userID) {
+        log.info("Fetching unread notification count for userID={}", userID);
         return notificationRepository.countByUserUserIDAndNotificationStatus(
                 userID, NotificationStatus.UNREAD);
     }
 
     @Override
     public void markAllAsRead(Long userID) {
+        log.info("Marking all notifications as READ for userID={}", userID);
         List<Notification> list = notificationRepository.findByUserUserID(userID);
         list.forEach(n -> n.setNotificationStatus(NotificationStatus.READ));
         notificationRepository.saveAll(list);
@@ -68,6 +77,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void dismissNotification(Long notificationId) {
+        log.info("Dismissing notificationId={}", notificationId);
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new CustomException("Notification not found"));
         notification.setNotificationStatus(NotificationStatus.DISMISSED);

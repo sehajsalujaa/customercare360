@@ -15,4 +15,6 @@ public interface BillingCycleRepository extends JpaRepository <BillingCycle, Lon
             LocalDate endDate,
             LocalDate startDate
     );
+
+    java.util.List<BillingCycle> findAllByOrderByStartDateDesc();
 }

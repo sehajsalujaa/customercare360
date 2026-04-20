@@ -38,4 +38,7 @@ public class ServiceAccount {
     @JoinColumn(name="premiseId")
     private Premise premise;
 
+    private LocalDate premiseEffectiveFrom;
+    private LocalDate premiseEffectiveTo;
+
 }

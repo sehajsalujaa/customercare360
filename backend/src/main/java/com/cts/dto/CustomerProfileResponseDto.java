@@ -16,6 +16,11 @@ public class CustomerProfileResponseDto {
     private String name;
     private String email;
     private String phone;
+    private String customerStatus;
+    private String address;
+    private String customerType;
 
     private List<ServiceAccountProfileDto> serviceAccounts;
+    private List<BillDto> bills;
+    private List<ServiceRequestDto> requests;
 }

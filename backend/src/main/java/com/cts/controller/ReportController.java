@@ -9,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
@@ -18,6 +20,11 @@ public class ReportController {
     @PostMapping("/generate")
     public OperationalReport generate(@RequestBody GenerateReportDto dto) {
         return reportService.generateReport(dto);
+    }
+
+    @GetMapping("/list")
+    public List<OperationalReport> listReports() {
+        return reportService.getAllReports();
     }
 
     @GetMapping("/export/{reportId}")
@@ -31,11 +38,17 @@ public class ReportController {
     }
 
     @GetMapping("/dashboard")
-    public DashboardResponseDto getDashboard(
-            @RequestParam String serviceType,
-            @RequestParam String startDate,
-            @RequestParam String endDate
+    public ResponseEntity<?> getDashboard(
+            @RequestParam(required = false) String serviceType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
     ) {
-        return reportService.getDashboard(serviceType, startDate, endDate);
+        try {
+            return ResponseEntity.ok(
+                    reportService.getDashboard(serviceType, startDate, endDate)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
 }

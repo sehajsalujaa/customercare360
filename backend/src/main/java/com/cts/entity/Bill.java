@@ -1,6 +1,7 @@
 package com.cts.entity;
 
 import com.cts.enums.BillStatus;
+import com.cts.enums.BillGenerationSource;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table(
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_bill_cycle_account", columnNames = {"cycleId", "accountId"})
+    }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,5 +44,23 @@ public class Bill {
     private BillStatus billStatus;
 
     private String errorMessage;
+
+    private LocalDate fromDate;
+    private LocalDate toDate;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    private String billBreakdown;
+
+    @Enumerated(EnumType.STRING)
+    private BillGenerationSource generationSource;
+
+    private LocalDate paidAt;
+    private String paymentRef;
+    private String paymentChannel;
+    private Double collectedAmount;
+
+    @Version
+    private Long version;
 
 }

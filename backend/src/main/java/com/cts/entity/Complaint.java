@@ -22,7 +22,7 @@ public class Complaint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long complaintId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="user_id")
     private User user;
 

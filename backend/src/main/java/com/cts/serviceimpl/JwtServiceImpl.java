@@ -4,6 +4,7 @@ import com.cts.entity.Permission;
 import com.cts.entity.Role;
 import com.cts.entity.User;
 import com.cts.service.JwtService;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -22,13 +23,15 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateAccessToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        // Add roles to token
         List<String> roles = user.getRoles()
                 .stream()
                 .map(Role::getName)
+                .filter(Objects::nonNull)
                 .toList();
+        System.out.println("JWT Roles: " + roles); // DEBUG
         claims.put("roles", roles);
-
+        claims.put("firstLogin", user.isFirstLogin());
+        claims.put("userId", user.getUserID());
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(user.getEmail())
@@ -74,5 +77,18 @@ public class JwtServiceImpl implements JwtService {
         System.out.println("User Roles: " + user.getRoles());
         System.out.println(("Granted Authorities: " + authorities));
         return authorities;
+    }
+
+    public Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY.getBytes())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return (List<String>) claims.get("roles");
     }
 }
